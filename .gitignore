@@ -1,0 +1,14 @@
+# directories
+cache
+out
+
+# files
+*.env
+*.log
+
+
+
+# broadcasts
+!broadcast
+broadcast/*
+broadcast/*/31337/
