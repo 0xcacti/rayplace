@@ -22,8 +22,60 @@ contract NightHam is IPuzzle {
         return 2 << (seed % 64) * 4;
     }
 
+    function verify(uint256 _start, uint256 _solution) external pure returns (bool) {
+
+        uint256 position = _start;
+        console2.logBytes32(bytes32(_start));
+
+        for (; _solution != 0; _solution >>= 4) {
+            uint256 move = _solution & 0xf;
+
+            assembly {
+                switch move
+                case 0 {
+                    position := shr(alexander, position)
+                    _start := or(_start, position)
+                }
+                case 1 {
+                    position := shr(lewis, position)
+                    _start := or(_start, position)
+                }
+                case 2 {
+                    position := shr(antony, position)
+                    _start := or(_start, position)
+                }
+                case 3 {
+                    position := shr(rowan, position)
+                    _start := or(_start, position)
+                }
+                case 4 {
+                    position := shl(rowan, position)
+                    _start := or(_start, position)
+                }
+                case 5 {
+                    position := shl(antony, position)
+                    _start := or(_start, position)
+                }
+                case 6 {
+                    position := shl(lewis, position)
+                    _start := or(_start, position)
+                }
+                case 7 {
+                    position := shl(alexander, position)
+                    _start := or(_start, position)
+                }
+            }
+
+            if (position ^ _start != 0) return false;
+        }
+        return position
+            == 15_438_945_231_642_159_389_809_464_667_825_054_380_435_997_955_418_741_871_927_677_867_721_750_618_658;
+    }
+}
+
     /// @inheritdoc IPuzzle
-    function verify(uint256 _start, uint256 _solution) external view returns (bool) {
+    function verifyTemp(uint256 _start, uint256 _solution) external view returns (bool) {
+        // set temporary custom start
         uint256 _start = 0x0000000000000000000000000000000000000000000000000000000000000002;
 
         // 0  0  0  0  0  0  0  0
@@ -52,6 +104,7 @@ contract NightHam is IPuzzle {
         // 0  0  0  0  0  0  2  0
         // 0  0  0  0  0  0  0  2
         uint256 position = _start;
+        console2.logBytes32(bytes32(_start));
 
         for (; _solution != 0; _solution >>= 4) {
             uint256 move = _solution & 0xf;
@@ -59,35 +112,35 @@ contract NightHam is IPuzzle {
             assembly {
                 switch move
                 case 0 {
-                    position := shl(position, alexander)
+                    position := shr(alexander, position)
                     _start := or(_start, position)
                 }
                 case 1 {
-                    position := shl(position, lewis)
+                    position := shr(lewis, position)
                     _start := or(_start, position)
                 }
                 case 2 {
-                    position := shl(position, antony)
+                    position := shr(antony, position)
                     _start := or(_start, position)
                 }
                 case 3 {
-                    position := shl(position, rowan)
+                    position := shr(rowan, position)
                     _start := or(_start, position)
                 }
                 case 4 {
-                    position := shr(position, rowan)
+                    position := shl(rowan, position)
                     _start := or(_start, position)
                 }
                 case 5 {
-                    position := shr(position, antony)
+                    position := shl(antony, position)
                     _start := or(_start, position)
                 }
                 case 6 {
-                    position := shr(position, lewis)
+                    position := shl(lewis, position)
                     _start := or(_start, position)
                 }
                 case 7 {
-                    position := shr(position, alexander)
+                    position := shl(alexander, position)
                     _start := or(_start, position)
                 }
             }
