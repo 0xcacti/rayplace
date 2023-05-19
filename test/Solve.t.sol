@@ -17,5 +17,6 @@ contract TestContract is Test {
     function testSolve() public {
         uint256 myPuzzle = puzzle.generate(me);
         console2.logBytes32(bytes32(myPuzzle));
+        puzzle.verify(myPuzzle, 0x1);
     }
 }
