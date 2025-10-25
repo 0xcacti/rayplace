@@ -12,9 +12,11 @@ function M.grid()
         col = math.floor((ui.width - w) / 2),
         style = "minimal",
         border = "single",
+        focusable = false,
+        zindex = 200,
     }
     vim.api.nvim_buf_set_lines(buf, 0, -1, false, { " " })
-    local win = vim.api.nvim_open_win(buf, true, opts)
+    local win = vim.api.nvim_open_win(buf, false, opts)
     vim.api.nvim_set_hl(0, "GridNormal", { bg = "#1f2335" })
     vim.api.nvim_set_hl(0, "GridBorder", { fg = "#7aa2f7" })
     vim.api.nvim_win_set_option(win, "winhl", "NormalFloat:GridNormal,FloatBorder:GridBorder")
