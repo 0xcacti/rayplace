@@ -16,6 +16,11 @@ int main(void) {
   while (!WindowShouldClose()) {
     BeginDrawing();
     ClearBackground(BLACK);
+
+    // Subtle inner border glow
+    DrawRectangleLinesEx((Rectangle){1, 1, windowWidth - 2, windowHeight - 2}, 1,
+                         (Color){255, 255, 255, 50});
+
     EndDrawing();
   }
 
