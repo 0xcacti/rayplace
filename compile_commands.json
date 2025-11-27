@@ -1,0 +1,18 @@
+[
+ {
+  "directory": "/Users/t/code/c/rayplace",
+  "arguments": [
+   "/opt/homebrew/opt/llvm/bin/clang",
+   "-Iinclude",
+   "-Ivendor/raylib/include",
+   "-Wall",
+   "-Wextra",
+   "-O2",
+   "-c",
+   "-o",
+   "obj/main.o",
+   "src/main.c"
+  ],
+  "file": "src/main.c"
+ }
+]
