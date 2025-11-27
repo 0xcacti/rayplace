@@ -1,17 +1,23 @@
 SRC_DIR=src
 BIN_DIR=bin
 OBJ_DIR=obj
-CFLAGS=-Iinclude -Wall -Wextra -O2
+VENDOR_DIR=vendor
 
-TARGET=$(BIN)/rayplace
+CFLAGS=-Iinclude -I$(VENDOR_DIR)/raylib/include -Wall -Wextra -O2
+LDFLAGS=-L$(VENDOR_DIR)/raylib/lib -lraylib -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo
+
+TARGET=$(BIN_DIR)/rayplace
 
 SRC_FILES = $(wildcard $(SRC_DIR)/*.c)
 OBJ_FILES = $(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(SRC_FILES))
 
 all: $(TARGET)
 
-$(TARGET): $(OBJ) | $(BIN_DIR)
-	$(CC) $(CFLAGS) -o $@ $^
+$(TARGET): $(OBJ_FILES) | $(BIN_DIR)
+	$(CC) -o $@ $^ $(LDFLAGS)
+
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
+	$(CC) $(CFLAGS) -c -o $@ $
 
 $(OBJ_DIR):
 	mkdir -p $(OBJ_DIR)
@@ -28,4 +34,3 @@ clean:
 	rm -rf $(OBJ_DIR) $(BIN_DIR)
 
 .PHONY: all clean cdb
-
