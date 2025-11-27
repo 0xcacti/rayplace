@@ -1,0 +1,33 @@
+# Object files
+*.o
+
+# Binary executable
+/mit
+/run_tests
+
+# Dependency files (if you ever use -MMD)
+*.d
+
+# Editors
+*~
+*.swp
+*.swo
+*.tmp
+*.bak
+.DS_Store
+tags
+TAGS
+
+# Directories
+/build/
+/dist/
+/bin/
+/obj/
+/out/
+/test-repo/
+
+# Logs or debug artifacts
+*.log
+
+# cache 
+/.cache/
