@@ -1,4 +1,7 @@
 BasedOnStyle: LLVM
+AlignAfterOpenBracket: AlwaysBreak
+AllowAllParametersOfDeclarationOnNextLine: false
+BinPackParameters: false
 IndentWidth: 2
 TabWidth: 2
 UseTab: Never
