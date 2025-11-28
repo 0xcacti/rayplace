@@ -7,6 +7,8 @@
 
 #define DISPLAYED_WALLPAPERS 3
 
+void set_wallpaper(const char *path);
+
 typedef struct {
   Texture2D *textures;
   int count;
@@ -154,15 +156,7 @@ void drawThumbnail(Texture2D texture, ThumbnailBounds bounds, bool isActive) {
   EndScissorMode();
 }
 
-int main(int argc, char **argv) {
-
-  char *resourcePath = NULL;
-  if (argc < 2) {
-    resourcePath = "resources";
-  } else {
-    resourcePath = argv[1];
-  }
-
+void run_picker(const char *resourcePath) {
   int wpCount = 0;
   char **paths = getWallpaperPaths(resourcePath, &wpCount);
 
@@ -187,7 +181,7 @@ int main(int argc, char **argv) {
 
   Wallpapers wallpapers = loadWallpapers(paths, wpCount);
   SlideAnimation slide = {0};
-  slide.duration = 0.25f;
+  slide.duration = 0.125f;
 
   while (!WindowShouldClose()) {
     BeginDrawing();
@@ -217,7 +211,19 @@ int main(int argc, char **argv) {
         slide.direction = -1;
         slide.t = 0.0f;
       }
+
+      if (ch == 'q') {
+        break;
+      }
       ch = GetCharPressed();
+    }
+
+    if (GetKeyPressed() == KEY_ENTER) {
+      WallpaperSlice currentSlice = getCurrentSliceIndices(&wallpapers);
+      int activeIdx = currentSlice.indices[1];
+      const char *selectedPath = paths[activeIdx];
+      set_wallpaper(selectedPath);
+      break;
     }
 
     WallpaperSlice slice = getCurrentSliceIndices(&wallpapers);
@@ -250,5 +256,4 @@ int main(int argc, char **argv) {
   }
 
   CloseWindow();
-  return 0;
 }
