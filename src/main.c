@@ -244,8 +244,6 @@ int main(int argc, char **argv) {
 
         drawThumbnail(wallpapers.textures[slide.fromSlice.indices[i]], fromB,
                       i == 1 && progress < 0.5f);
-        drawThumbnail(wallpapers.textures[slide.toSlice.indices[i]], toB,
-                      i == 1 && progress >= 0.5f);
       }
     }
     EndDrawing();
