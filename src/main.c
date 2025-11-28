@@ -140,7 +140,7 @@ void drawThumbnail(Texture2D texture, ThumbnailBounds bounds, bool isActive) {
 
   if (!isActive) {
     DrawRectangle(bounds.x, bounds.y, bounds.width, bounds.height,
-                  (Color){0, 0, 0, 100});
+                  (Color){0, 0, 0, 150});
   }
 
   EndScissorMode();
@@ -162,6 +162,7 @@ int main(int argc, char **argv) {
   int windowWidth = 350;
   int windowHeight = 100;
   InitWindow(windowWidth, windowHeight, "rayplace");
+  SetWindowFocused();
 
   int screenWidth = GetMonitorWidth(0);
   int screenHeight = GetMonitorHeight(0);
@@ -181,6 +182,20 @@ int main(int argc, char **argv) {
   while (!WindowShouldClose()) {
     BeginDrawing();
     ClearBackground(BLACK);
+    int ch = GetCharPressed();
+    while (ch != 0) {
+      if (ch == 'h') {
+        printf("H pressed\n");
+        printf("Moved to wallpaper index: %d\n", wallpapers.sliceStartIdx);
+        moveSliceWindow(&wallpapers, -1);
+      }
+      if (ch == 'l') {
+        printf("L pressed\n");
+        printf("Moved to wallpaper index: %d\n", wallpapers.sliceStartIdx);
+        moveSliceWindow(&wallpapers, 1);
+      }
+      ch = GetCharPressed();
+    }
 
     WallpaperSlice slice = getCurrentSliceIndices(&wallpapers);
     for (int i = 0; i < DISPLAYED_WALLPAPERS; i++) {
