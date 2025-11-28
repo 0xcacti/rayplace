@@ -23,6 +23,14 @@ typedef struct {
   float width, height;
 } ThumbnailBounds;
 
+typedef struct {
+  int direction;
+  float t;
+  float duration;
+  WallpaperSlice fromSlice;
+  WallpaperSlice toSlice;
+} SlideAnimation;
+
 const char *getFileExtension(const char *filename) {
   const char *dot = strrchr(filename, '.');
   if (!dot || dot == filename)
@@ -178,30 +186,67 @@ int main(int argc, char **argv) {
   int itemHeight = windowHeight - yPadding * 2;
 
   Wallpapers wallpapers = loadWallpapers(paths, wpCount);
+  SlideAnimation slide = {0};
+  slide.duration = 0.25f;
 
   while (!WindowShouldClose()) {
     BeginDrawing();
     ClearBackground(BLACK);
+
+    float dt = GetFrameTime();
+    if (slide.direction != 0) {
+      slide.t += dt / slide.duration;
+      if (slide.t >= 1.0f) {
+        slide.t = 1.0f;
+        slide.direction = 0;
+      }
+    }
     int ch = GetCharPressed();
     while (ch != 0) {
-      if (ch == 'h') {
-        printf("H pressed\n");
-        printf("Moved to wallpaper index: %d\n", wallpapers.sliceStartIdx);
+      if (slide.direction == 0 && ch == 'h') {
+        slide.fromSlice = getCurrentSliceIndices(&wallpapers);
         moveSliceWindow(&wallpapers, -1);
+        slide.toSlice = getCurrentSliceIndices(&wallpapers);
+        slide.direction = 1;
+        slide.t = 0.0f;
       }
-      if (ch == 'l') {
-        printf("L pressed\n");
-        printf("Moved to wallpaper index: %d\n", wallpapers.sliceStartIdx);
+      if (slide.direction == 0 && ch == 'l') {
+        slide.fromSlice = getCurrentSliceIndices(&wallpapers);
         moveSliceWindow(&wallpapers, 1);
+        slide.toSlice = getCurrentSliceIndices(&wallpapers);
+        slide.direction = -1;
+        slide.t = 0.0f;
       }
       ch = GetCharPressed();
     }
 
     WallpaperSlice slice = getCurrentSliceIndices(&wallpapers);
-    for (int i = 0; i < DISPLAYED_WALLPAPERS; i++) {
-      ThumbnailBounds bounds = calculateThumbnailBounds(
-          i, itemWidth, itemHeight, xPadding, yPadding);
-      drawThumbnail(wallpapers.textures[slice.indices[i]], bounds, i == 1);
+    if (slide.direction == 0) {
+      for (int i = 0; i < DISPLAYED_WALLPAPERS; i++) {
+        ThumbnailBounds bounds = calculateThumbnailBounds(
+            i, itemWidth, itemHeight, xPadding, yPadding);
+        drawThumbnail(wallpapers.textures[slice.indices[i]], bounds, i == 1);
+      }
+    } else {
+      float progress = slide.t;
+      float slideDistance = (float)(itemWidth + xPadding);
+      float dir = (float)slide.direction;
+
+      for (int i = 0; i < DISPLAYED_WALLPAPERS; i++) {
+        ThumbnailBounds base = calculateThumbnailBounds(
+            i, itemWidth, itemHeight, xPadding, yPadding);
+
+        ThumbnailBounds fromB = base;
+        ThumbnailBounds toB = base;
+
+        fromB.x = base.x + dir * slideDistance * progress;
+        toB.x = base.x + dir * slideDistance * (progress - 1.0f);
+
+        drawThumbnail(wallpapers.textures[slide.fromSlice.indices[i]], fromB,
+                      i == 1 && progress < 0.5f);
+        drawThumbnail(wallpapers.textures[slide.toSlice.indices[i]], toB,
+                      i == 1 && progress >= 0.5f);
+      }
     }
     EndDrawing();
   }
