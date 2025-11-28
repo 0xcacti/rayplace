@@ -15,16 +15,23 @@ static CGEventRef EventCallback(CGEventTapProxy proxy, CGEventType type, CGEvent
 
     if (type != kCGEventKeyDown) return event;
 
-    CGEventFlags flags = CGEventGetFlags(event);
-    int ctrlDown = (flags & kCGEventFlagMaskControl) == kCGEventFlagMaskControl;
-    CGKeyCode keycode = (CGKeyCode)CGEventGetIntegerValueField(event, kCGKeyboardEventKeycode);
+    NSEvent *nsEvent = [NSEvent eventWithCGEvent:event];
+    if (nsEvent == nil) return event;
 
-    if (ctrlDown && keycode == (CGKeyCode)13 && isPicking == 0) {
+    NSString *chars = [nsEvent charactersIgnoringModifiers];
+    if (chars.length == 0) return event;
+
+    unichar ch = [chars characterAtIndex:0];
+    NSEventModifierFlags flags = [nsEvent modifierFlags];
+    int ctrlDown = (flags & NSEventModifierFlagControl) == NSEventModifierFlagControl;
+
+    if (ctrlDown && (ch == 'w' || ch == 'W') && isPicking == 0) {
         isPicking = 1;
         dispatch_async(dispatch_get_main_queue(), ^{
             run_picker("resources");
             isPicking = 0;
         });
+        return NULL; // swallow Ctrl+W → no bell, front app never sees it
     }
 
     return event;
@@ -34,12 +41,14 @@ int main(int argc, const char *argv[]) {
     @autoreleasepool {
         [NSApplication sharedApplication];
 
-        eventTap = CGEventTapCreate(kCGSessionEventTap,
-                                    kCGHeadInsertEventTap,
-                                    kCGEventTapOptionListenOnly,
-                                    CGEventMaskBit(kCGEventKeyDown),
-                                    EventCallback,
-                                    NULL);
+        eventTap = CGEventTapCreate(
+            kCGSessionEventTap,
+            kCGHeadInsertEventTap,
+            kCGEventTapOptionDefault,              // not ListenOnly → we can swallow events
+            CGEventMaskBit(kCGEventKeyDown),
+            EventCallback,
+            NULL
+        );
 
         if (eventTap == NULL) {
             fprintf(stderr, "event tap creation failed\n");

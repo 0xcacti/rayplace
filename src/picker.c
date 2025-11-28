@@ -161,6 +161,8 @@ void run_picker(const char *resourcePath) {
   char **paths = getWallpaperPaths(resourcePath, &wpCount);
 
   SetConfigFlags(FLAG_WINDOW_UNDECORATED);
+  SetTraceLogLevel(LOG_NONE);
+
   int windowWidth = 350;
   int windowHeight = 100;
   InitWindow(windowWidth, windowHeight, "rayplace");
@@ -213,7 +215,8 @@ void run_picker(const char *resourcePath) {
       }
 
       if (ch == 'q') {
-        break;
+        CloseWindow();
+        return;
       }
       ch = GetCharPressed();
     }
