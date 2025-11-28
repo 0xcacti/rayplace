@@ -5,10 +5,18 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define DISPLAYED_WALLPAPERS 3
+
 typedef struct {
   Texture2D *textures;
   int count;
+  int sliceStartIdx;
+  int sliceCount;
 } Wallpapers;
+
+typedef struct {
+  int indices[DISPLAYED_WALLPAPERS];
+} WallpaperSlice;
 
 typedef struct {
   float x, y;
@@ -67,6 +75,8 @@ char **getWallpaperPaths(const char *directoryPath, int *outCount) {
 Wallpapers loadWallpapers(char **wallpaperPaths, int count) {
 
   Wallpapers wallpapers = {0};
+  wallpapers.sliceStartIdx = 0;
+  wallpapers.sliceCount = DISPLAYED_WALLPAPERS;
   wallpapers.count = count;
   wallpapers.textures = malloc(sizeof(Texture2D) * count);
 
@@ -78,6 +88,26 @@ Wallpapers loadWallpapers(char **wallpaperPaths, int count) {
   }
 
   return wallpapers;
+}
+
+void moveSliceWindow(Wallpapers *wallpapers, int direction) {
+  int newStartIdx = wallpapers->sliceStartIdx + direction;
+  if (newStartIdx < 0) {
+    newStartIdx = wallpapers->count - 1;
+  }
+  if (newStartIdx >= wallpapers->count) {
+    newStartIdx = 0;
+  }
+  wallpapers->sliceStartIdx = newStartIdx;
+}
+
+WallpaperSlice getCurrentSliceIndices(Wallpapers *wallpapers) {
+  WallpaperSlice slice = {0};
+  for (int i = 0; i < wallpapers->sliceCount; i++) {
+    int idx = (wallpapers->sliceStartIdx + i) % wallpapers->count;
+    slice.indices[i] = idx;
+  }
+  return slice;
 }
 
 ThumbnailBounds calculateThumbnailBounds(int col, int itemWidth, int itemHeight,
@@ -142,7 +172,7 @@ int main(int argc, char **argv) {
 
   int yPadding = 8;
   int xPadding = 5;
-  int columns = 3;
+  int columns = DISPLAYED_WALLPAPERS;
   int itemWidth = (windowWidth - xPadding * (columns + 1)) / columns;
   int itemHeight = windowHeight - yPadding * 2;
 
@@ -152,12 +182,12 @@ int main(int argc, char **argv) {
     BeginDrawing();
     ClearBackground(BLACK);
 
-    for (int col = 0; col < columns; col++) {
+    WallpaperSlice slice = getCurrentSliceIndices(&wallpapers);
+    for (int i = 0; i < DISPLAYED_WALLPAPERS; i++) {
       ThumbnailBounds bounds = calculateThumbnailBounds(
-          col, itemWidth, itemHeight, xPadding, yPadding);
-      drawThumbnail(wallpapers.textures[col], bounds, col == 1);
+          i, itemWidth, itemHeight, xPadding, yPadding);
+      drawThumbnail(wallpapers.textures[slice.indices[i]], bounds, i == 1);
     }
-
     EndDrawing();
   }
 
