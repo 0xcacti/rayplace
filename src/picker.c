@@ -9,6 +9,8 @@
 
 void set_wallpaper(const char *path);
 
+static int g_activeIndex = 1;
+
 typedef struct {
   Texture2D *textures;
   int count;
@@ -45,6 +47,12 @@ bool isValidExtension(const char *extension) {
           strcmp(extension, "jpeg") == 0);
 }
 
+int cmp_paths(const void *a, const void *b) {
+  const char *pathA = *(const char **)a;
+  const char *pathB = *(const char **)b;
+  return strcmp(pathA, pathB);
+}
+
 char **getWallpaperPaths(const char *directoryPath, int *outCount) {
   DIR *d;
   struct dirent *dir;
@@ -52,11 +60,16 @@ char **getWallpaperPaths(const char *directoryPath, int *outCount) {
 
   int pathsCap = 5;
   char **paths = malloc(pathsCap * sizeof(char *));
+  if (!paths) {
+    perror("malloc");
+    exit(EXIT_FAILURE);
+  }
 
   if (!d) {
     perror("opendir");
     exit(EXIT_FAILURE);
   }
+
   while ((dir = readdir(d)) != NULL) {
     if (isValidExtension(getFileExtension(dir->d_name))) {
       if (*outCount >= pathsCap) {
@@ -67,19 +80,44 @@ char **getWallpaperPaths(const char *directoryPath, int *outCount) {
           exit(EXIT_FAILURE);
         }
       }
-      char *path = malloc(strlen(directoryPath) + strlen(dir->d_name) + 1);
+
+      size_t dirLen = strlen(directoryPath);
+      size_t nameLen = strlen(dir->d_name);
+      size_t fullLen = dirLen + 1 + nameLen + 1;
+
+      char *path = malloc(fullLen);
       if (!path) {
         perror("malloc");
         exit(EXIT_FAILURE);
       }
-      snprintf(path, strlen(directoryPath) + strlen(dir->d_name) + 2, "%s/%s",
-               directoryPath, dir->d_name);
+
+      snprintf(path, fullLen, "%s/%s", directoryPath, dir->d_name);
       paths[*outCount] = path;
       (*outCount)++;
     }
   }
+
   closedir(d);
+
+  if (*outCount > 1) {
+    qsort(paths, *outCount, sizeof(char *), cmp_paths);
+  }
+
   return paths;
+}
+
+int findWallpaperIndex(char **wallpaperPaths, int count,
+                       const char *targetPath) {
+  if (targetPath == NULL) {
+    return -1;
+  }
+
+  for (int i = 0; i < count; i++) {
+    if (strcmp(wallpaperPaths[i], targetPath) == 0) {
+      return i;
+    }
+  }
+  return -1;
 }
 
 Wallpapers loadWallpapers(char **wallpaperPaths, int count) {
@@ -185,6 +223,19 @@ void run_picker(const char *resourcePath) {
   SlideAnimation slide = {0};
   slide.duration = 0.125f;
 
+  if (wpCount > 0) {
+    if (g_activeIndex < 0) {
+      g_activeIndex = 0;
+    }
+    if (g_activeIndex >= wpCount) {
+      g_activeIndex = g_activeIndex % wpCount;
+    }
+
+    int centerOffset = 1;
+    wallpapers.sliceStartIdx =
+        (g_activeIndex - centerOffset + wpCount) % wpCount;
+  }
+
   while (!WindowShouldClose()) {
     BeginDrawing();
     ClearBackground(BLACK);
@@ -226,6 +277,7 @@ void run_picker(const char *resourcePath) {
       int activeIdx = currentSlice.indices[1];
       const char *selectedPath = paths[activeIdx];
       set_wallpaper(selectedPath);
+      g_activeIndex = activeIdx;
       break;
     }
 
