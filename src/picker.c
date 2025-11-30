@@ -272,12 +272,40 @@ void run_picker(const char *resourcePath) {
       ch = GetCharPressed();
     }
 
-    if (GetKeyPressed() == KEY_ENTER) {
+    switch (GetKeyPressed()) {
+    case KEY_ENTER: {
       WallpaperSlice currentSlice = getCurrentSliceIndices(&wallpapers);
       int activeIdx = currentSlice.indices[1];
       const char *selectedPath = paths[activeIdx];
       set_wallpaper(selectedPath);
       g_activeIndex = activeIdx;
+      CloseWindow();
+      return;
+    }
+    case KEY_ESCAPE: {
+      CloseWindow();
+      return;
+    }
+    case KEY_LEFT: {
+      if (slide.direction == 0) {
+        slide.fromSlice = getCurrentSliceIndices(&wallpapers);
+        moveSliceWindow(&wallpapers, -1);
+        slide.toSlice = getCurrentSliceIndices(&wallpapers);
+        slide.direction = 1;
+        slide.t = 0.0f;
+      }
+      break;
+    }
+    case KEY_RIGHT:
+      if (slide.direction == 0) {
+        slide.fromSlice = getCurrentSliceIndices(&wallpapers);
+        moveSliceWindow(&wallpapers, 1);
+        slide.toSlice = getCurrentSliceIndices(&wallpapers);
+        slide.direction = -1;
+        slide.t = 0.0f;
+      }
+      break;
+    default:
       break;
     }
 
